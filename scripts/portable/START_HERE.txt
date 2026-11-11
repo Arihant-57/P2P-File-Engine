@@ -1,0 +1,57 @@
+================================================================================
+  PEER-TO-PEER DECENTRALIZED FILE TRANSFER & RECOVERY ENGINE (WINDOWS x64)
+  QUICK START GUIDE
+================================================================================
+
+1. WHAT IS INCLUDED IN THIS PORTABLE PACKAGE
+--------------------------------------------------------------------------------
+  - peer.exe             : Autonomous decentralized peer daemon (TCP server/client,
+                           UDP discovery, SQLite catalogue, RS(3,2) repair engine)
+  - rfe.exe              : Command-line user interface for uploading, searching,
+                           downloading, and inspecting files across any peer
+  - libcrypto-3-x64.dll  : OpenSSL 3 SHA-256 cryptographic runtime library
+  - setup_peer.ps1       : Interactive setup wizard to configure this laptop's peer
+  - start_peer.ps1       : Script to launch peer.exe using your saved configuration
+  - stop_peer.ps1        : Script to stop running peer.exe instance(s)
+  - configure_lan_firewall.ps1 : Optional script (Admin) to open TCP/UDP LAN ports
+  - configs/             : Sample 4-peer configurations (peer_A.json .. peer_D.json)
+  - docs/                : User Guide, LAN Deployment Guide, and 4-Laptop Demo Guide
+
+2. STARTING A PEER ON YOUR LAPTOP (INTERACTIVE WIZARD)
+--------------------------------------------------------------------------------
+Open PowerShell in this folder and run:
+
+  powershell -ExecutionPolicy Bypass -File .\setup_peer.ps1
+  powershell -ExecutionPolicy Bypass -File .\start_peer.ps1
+
+Or launch directly without the wizard:
+
+  .\peer.exe A 127.0.0.1 5701 p2p 5705
+
+3. RUNNING A 4-PEER CLUSTER ON ONE MACHINE (LOCAL DEMO)
+--------------------------------------------------------------------------------
+Open PowerShell in this folder and start 4 independent peers:
+
+  Start-Process .\peer.exe -ArgumentList "A 127.0.0.1 5701 p2p 5705"
+  Start-Process .\peer.exe -ArgumentList "B 127.0.0.1 5702 p2p 5705"
+  Start-Process .\peer.exe -ArgumentList "C 127.0.0.1 5703 p2p 5705"
+  Start-Process .\peer.exe -ArgumentList "D 127.0.0.1 5704 p2p 5705"
+
+4. UPLOADING, SEARCHING & DOWNLOADING FILES
+--------------------------------------------------------------------------------
+Check peer cluster status:
+  .\rfe.exe peers --peer 127.0.0.1:5701
+  .\rfe.exe status --peer 127.0.0.1:5701
+
+Upload any file via Peer A:
+  .\rfe.exe upload .\README.md --peer 127.0.0.1:5701
+
+Search the distributed catalogue via Peer D:
+  .\rfe.exe search README.md --peer 127.0.0.1:5704
+
+Download and RS(3,2)-reconstruct via Peer D:
+  .\rfe.exe download README.md --peer 127.0.0.1:5704 --output .\restored_README.md
+
+Stop all local peers when finished:
+  powershell -ExecutionPolicy Bypass -File .\stop_peer.ps1
+================================================================================

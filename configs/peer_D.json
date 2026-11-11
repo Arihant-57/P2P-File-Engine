@@ -1,0 +1,13 @@
+{
+  "peer_id": "D",
+  "address": "192.168.1.104",
+  "port": 5004,
+  "mode": "p2p",
+  "discovery_port": 5005,
+  "max_storage_mb": 10240,
+  "seed_peers": [
+    { "address": "192.168.1.101", "port": 5001 },
+    { "address": "192.168.1.102", "port": 5002 },
+    { "address": "192.168.1.103", "port": 5003 }
+  ]
+}

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>P2P Decentralized File Transfer &amp; Recovery Engine — Local Peer Dashboard</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="brand-group">
+      <div class="brand-logo">P2P</div>
+      <div class="brand-title">
+        <h1>Decentralized File Transfer &amp; Recovery Engine</h1>
+        <p id="hdr-subtitle">Autonomous Peer-to-Peer Storage Node &bull; RS(3,2) Erasure Coding &bull; Zero Central Coordinator</p>
+      </div>
+    </div>
+    <div class="header-pills">
+      <div class="pill" title="Local Peer Identity">
+        <span class="status-dot dot-online" id="hdr-dot"></span>
+        <span>Peer: <strong id="hdr-peer-id" class="mono">--</strong></span>
+      </div>
+      <div class="pill" title="P2P TCP Endpoint">
+        <span>TCP: <strong id="hdr-tcp-ep" class="mono">--</strong></span>
+      </div>
+      <div class="pill" title="Cluster Health">
+        <span>Health: <strong id="hdr-health">HEALTHY</strong></span>
+      </div>
+      <div class="pill" title="Online Peers">
+        <span>Peers: <strong id="hdr-peers-count" class="mono">0/0</strong></span>
+      </div>
+      <button class="btn btn-secondary btn-sm" id="btn-global-refresh" title="Refresh All Data">&#x21bb; Refresh</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <ul class="nav-list">
+        <li><button class="nav-btn active" data-tab="overview"><span>A. Overview</span><span class="nav-badge" id="nav-badge-health">OK</span></button></li>
+        <li><button class="nav-btn" data-tab="peers"><span>B. Peer Network</span><span class="nav-badge" id="nav-badge-peers">0</span></button></li>
+        <li><button class="nav-btn" data-tab="upload"><span>C. Upload Files</span><span class="nav-badge">RS(3,2)</span></button></li>
+        <li><button class="nav-btn" data-tab="catalogue"><span>D. File Catalogue</span><span class="nav-badge" id="nav-badge-files">0</span></button></li>
+        <li><button class="nav-btn" data-tab="download"><span>F. Download Files</span><span class="nav-badge">P2P</span></button></li>
+        <li><button class="nav-btn" data-tab="transfers"><span>G. Transfers</span><span class="nav-badge" id="nav-badge-transfers">0</span></button></li>
+        <li><button class="nav-btn" data-tab="recovery"><span>H. Recovery Monitor</span><span class="nav-badge" id="nav-badge-recovery">0</span></button></li>
+        <li><button class="nav-btn" data-tab="settings"><span>I. Settings</span></button></li>
+      </ul>
+      <div class="sidebar-footer">
+        <div>Architecture: <strong>Decentralized Mesh</strong></div>
+        <div>Coding: <strong>GF(2^8) RS(3,2)</strong></div>
+        <div>Integrity: <strong>SHA-256 Verified</strong></div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- SECTION A: OVERVIEW DASHBOARD -->
+      <section class="tab-section active" id="tab-overview">
+        <div class="section-header">
+          <div>
+            <h2>A. Local Peer Overview Dashboard</h2>
+            <p>Real-time telemetry from this peer's embedded SQLite database, UDP discovery beacon, and P2P mesh.</p>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-primary" onclick="switchTab('upload')">+ Upload File</button>
+            <button class="btn btn-secondary" onclick="switchTab('catalogue')">Browse Catalogue</button>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Local Peer ID &amp; Endpoint</div>
+            <div class="metric-value" id="ov-peer-id">--</div>
+            <div class="metric-sub" id="ov-endpoint">TCP -- &bull; UDP Discovery --</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Discovered Peer Network</div>
+            <div class="metric-value" id="ov-peers-online">0 ONLINE</div>
+            <div class="metric-sub" id="ov-peers-breakdown">0 Suspect &bull; 0 Offline</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Local Storage Capacity</div>
+            <div class="metric-value" id="ov-storage-avail">--</div>
+            <div class="metric-sub" id="ov-storage-used">Used: 0 B (0 local shards)</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Distributed Catalogue</div>
+            <div class="metric-value" id="ov-files-count">0 Files</div>
+            <div class="metric-sub" id="ov-network-health">Network Health: HEALTHY</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Active Transfers</div>
+            <div class="metric-value" id="ov-active-transfers">0</div>
+            <div class="metric-sub" id="ov-transfers-sub">Uploads: 0 &bull; Downloads: 0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Autonomous Recovery</div>
+            <div class="metric-value" id="ov-recovery-count">0 Repaired</div>
+            <div class="metric-sub" id="ov-recovery-sub">Active Leases: 0 &bull; Unrecoverable: 0</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Live Peer Event Feed</span>
+            <span class="badge badge-info" id="ov-poll-status">Live Auto-Refresh Active</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Category</th>
+                  <th>Severity</th>
+                  <th>Event Message</th>
+                </tr>
+              </thead>
+              <tbody id="ov-events-tbody">
+                <tr><td colspan="4" style="color:var(--text-secondary)">Loading live peer events...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION B: PEER NETWORK -->
+      <section class="tab-section" id="tab-peers">
+        <div class="section-header">
+          <div>
+            <h2>B. Decentralized Peer Network</h2>
+            <p>All peers discovered via UDP broadcast beacons, seed probing, and direct TCP gossip handshakes.</p>
+          </div>
+          <div class="toolbar">
+            <input type="text" class="input-text" id="input-quick-seed" placeholder="Add seed peer (e.g. 192.168.1.102:5002)" style="width:260px" />
+            <button class="btn btn-primary" id="btn-add-seed">Connect Seed Peer</button>
+            <button class="btn btn-secondary" onclick="refreshAll()">&#x21bb; Refresh Peers</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Discovered Peers &amp; Heartbeat Telemetry</span>
+            <span class="badge badge-neutral" id="peers-summary-badge">0 Peers</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Peer ID</th>
+                  <th>IP Address</th>
+                  <th>TCP Port</th>
+                  <th>Health State</th>
+                  <th>Available Storage</th>
+                  <th>Last Heartbeat</th>
+                  <th>Current Transfers</th>
+                  <th>Discovery Source</th>
+                </tr>
+              </thead>
+              <tbody id="peers-tbody">
+                <tr><td colspan="8">Loading peer table...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION C: UPLOAD FILES -->
+      <section class="tab-section" id="tab-upload">
+        <div class="section-header">
+          <div>
+            <h2>C. Upload Files to Decentralized Network</h2>
+            <p>Files are automatically split into 128 KB stripes, Reed-Solomon RS(3,2) encoded into 2 data + 1 parity shard per stripe, SHA-256 hashed, and distributed across 3 distinct online peers.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="dropzone" id="upload-dropzone">
+            <h3>Drag &amp; Drop Files Here or Click to Browse</h3>
+            <p>Supports any file type (PDF, MP4, PNG, WAV, ZIP, TXT, binary). Automatic adaptive chunking &amp; RS(3,2) shard placement.</p>
+            <input type="file" id="upload-file-input" multiple style="display:none" />
+            <button class="btn btn-secondary" type="button" id="btn-browse-files">Browse Files...</button>
+          </div>
+
+          <div id="upload-selected-box" style="display:none; margin-bottom:1.25rem;">
+            <div class="panel-header">
+              <span class="panel-title">Selected Upload Queue (Destination Entry Peer: <span id="up-dest-peer" class="mono">--</span>)</span>
+              <div class="toolbar">
+                <button class="btn btn-secondary btn-sm" id="btn-clear-upload">Clear Selection</button>
+                <button class="btn btn-primary" id="btn-upload-file">UPLOAD FILE</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>File Size</th>
+                    <th>Entry Peer</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="upload-queue-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="upload-progress-box" style="display:none; margin-bottom:1.25rem;">
+            <div class="panel-header">
+              <span class="panel-title" id="up-progress-title">Uploading...</span>
+              <span class="mono" id="up-speed-label">0.00 MB/s (0%)</span>
+            </div>
+            <div class="progress-track" style="margin-bottom:0.75rem;">
+              <div class="progress-fill" id="up-progress-bar"></div>
+            </div>
+            <div id="up-stage-msg" style="font-size:0.83rem; color:var(--text-secondary);">Streaming to local peer &amp; distributing RS(3,2) shards across P2P mesh...</div>
+          </div>
+
+          <div id="upload-result-box" style="display:none;">
+            <div class="panel-header">
+              <span class="panel-title" id="up-result-title">Upload Result</span>
+              <button class="btn btn-secondary btn-sm" id="btn-retry-upload" style="display:none;">Retry Upload</button>
+            </div>
+            <div class="kv-grid" id="up-result-kv"></div>
+            <div class="pre-log" id="up-placement-log"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION D: FILES / DISTRIBUTED CATALOGUE -->
+      <section class="tab-section" id="tab-catalogue">
+        <div class="section-header">
+          <div>
+            <h2>D. Distributed File Catalogue</h2>
+            <p>Search and inspect all files synchronized across the decentralized peer network.</p>
+          </div>
+          <div class="toolbar">
+            <input type="text" class="input-text" id="catalogue-search-input" placeholder="Search by filename, File ID, or SHA-256..." style="width:290px" />
+            <select class="select-box" id="catalogue-status-filter">
+              <option value="ALL">All Availability States</option>
+              <option value="AVAILABLE">AVAILABLE (3/3 Shards)</option>
+              <option value="DEGRADED">DEGRADED (2/3 Shards - Reconstructable)</option>
+              <option value="UNRECOVERABLE">UNRECOVERABLE (&lt;2 Shards)</option>
+            </select>
+            <button class="btn btn-primary" id="btn-catalogue-search">Search</button>
+            <button class="btn btn-secondary" id="btn-catalogue-sync">&#x21bb; Sync &amp; Refresh</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>File ID</th>
+                  <th>Original Size</th>
+                  <th>Upload Status</th>
+                  <th>Live Availability</th>
+                  <th>Stripes / Shards</th>
+                  <th>Storage Peers</th>
+                  <th>SHA-256</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="catalogue-tbody">
+                <tr><td colspan="9">Loading distributed file catalogue...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION F: DOWNLOAD FILES -->
+      <section class="tab-section" id="tab-download">
+        <div class="section-header">
+          <div>
+            <h2>F. Download &amp; Reconstruct Files</h2>
+            <p>Download any file through this peer without knowing which peers hold its shards. Missing or corrupted shards are reconstructed automatically via RS(3,2).</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Direct File Retrieval &amp; RS(3,2) Reconstruction</span>
+          </div>
+          <div class="toolbar" style="margin-bottom:1.25rem;">
+            <input type="text" class="input-text" id="dl-target-input" placeholder="Enter File ID (e.g. F_1A2B3C4D) or exact filename..." style="width:360px" />
+            <button class="btn btn-primary" id="btn-start-download">DOWNLOAD</button>
+          </div>
+
+          <div id="dl-status-box" style="display:none; margin-bottom:1.25rem;">
+            <div class="panel-header">
+              <span class="panel-title" id="dl-status-title">Retrieving shards from storage peers...</span>
+              <span class="mono" id="dl-speed-label">--</span>
+            </div>
+            <div class="progress-track" style="margin-bottom:0.85rem;">
+              <div class="progress-fill" id="dl-progress-bar"></div>
+            </div>
+            <div class="kv-grid" id="dl-telemetry-kv"></div>
+          </div>
+
+          <div class="panel-header" style="margin-top:1rem;">
+            <span class="panel-title">Available Files Ready for One-Click Download</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>File ID</th>
+                  <th>Size</th>
+                  <th>Live Status</th>
+                  <th>Online Shards</th>
+                  <th>Storage Peers</th>
+                  <th>Download</th>
+                </tr>
+              </thead>
+              <tbody id="dl-catalogue-tbody">
+                <tr><td colspan="7">Loading available files...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION G: TRANSFERS -->
+      <section class="tab-section" id="tab-transfers">
+        <div class="section-header">
+          <div>
+            <h2>G. Active &amp; Historical Transfers</h2>
+            <p>Live upload and download telemetry, transfer speed, shard counts, and per-peer transfer slot utilization.</p>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-secondary" onclick="refreshAll()">&#x21bb; Refresh Transfers</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Upload &amp; Download Transfer Operations</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Transfer ID</th>
+                  <th>Direction</th>
+                  <th>Filename &amp; File ID</th>
+                  <th>Size / Progress</th>
+                  <th>Transfer Speed</th>
+                  <th>Shards</th>
+                  <th>Peer</th>
+                  <th>Status</th>
+                  <th>Time / Details</th>
+                </tr>
+              </thead>
+              <tbody id="transfers-tbody">
+                <tr><td colspan="9">No transfers recorded yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Peer Transfer Slot Workload Across Cluster</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Peer ID</th>
+                  <th>Endpoint</th>
+                  <th>Health</th>
+                  <th>Active / Max Transfers</th>
+                  <th>Workload State</th>
+                </tr>
+              </thead>
+              <tbody id="workload-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION H: RECOVERY MONITORING -->
+      <section class="tab-section" id="tab-recovery">
+        <div class="section-header">
+          <div>
+            <h2>H. Autonomous Failure Detection &amp; Shard Recovery</h2>
+            <p>Monitors peer heartbeats (ONLINE &rarr; SUSPECT &rarr; OFFLINE), coordinates deterministic recovery leases, rebuilds missing shards via RS(3,2), and places replacements on healthy peers.</p>
+          </div>
+          <div class="toolbar">
+            <button class="btn btn-primary" id="btn-trigger-recovery">&#x2692; Trigger Recovery Scan Now</button>
+            <button class="btn btn-secondary" onclick="refreshAll()">&#x21bb; Refresh</button>
+          </div>
+        </div>
+
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Offline Peers</div>
+            <div class="metric-value" id="rec-offline-peers">0</div>
+            <div class="metric-sub" id="rec-offline-list">All known peers online</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Completed Shard Repairs</div>
+            <div class="metric-value" id="rec-completed-count">0</div>
+            <div class="metric-sub">Verified by SHA-256 &amp; stored atomically</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Active Recovery Leases</div>
+            <div class="metric-value" id="rec-active-count">0</div>
+            <div class="metric-sub">Distributed P2P lease coordination</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Unrecoverable Conditions</div>
+            <div class="metric-value" id="rec-unrec-count">0</div>
+            <div class="metric-sub">Stripes with &lt;2 surviving shards</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Recovery Records &amp; Audit Timeline</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Recovery ID</th>
+                  <th>File ID</th>
+                  <th>Shard ID</th>
+                  <th>Failed Peer</th>
+                  <th>Recovery Owner</th>
+                  <th>Replacement Peer</th>
+                  <th>Status</th>
+                  <th>Verification &amp; Reason</th>
+                </tr>
+              </thead>
+              <tbody id="recovery-tbody">
+                <tr><td colspan="9">No recovery events recorded yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION I: SETTINGS -->
+      <section class="tab-section" id="tab-settings">
+        <div class="section-header">
+          <div>
+            <h2>I. Local Peer Configuration &amp; Storage Settings</h2>
+            <p>Inspect local node parameters and update runtime storage quota or seed peers safely.</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Node Identity &amp; Network Configuration</span>
+          </div>
+          <div class="kv-grid" id="settings-kv-grid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Runtime Configurable Parameters</span>
+          </div>
+          <div class="toolbar" style="margin-bottom:1rem;">
+            <label style="font-size:0.86rem; min-width:210px;">Storage Contribution Quota (MB):</label>
+            <input type="number" class="input-text" id="set-quota-mb" min="0" step="64" placeholder="0 = Unlimited" style="width:180px" />
+            <button class="btn btn-primary" id="btn-save-quota">Save Storage Quota</button>
+          </div>
+          <div class="toolbar">
+            <label style="font-size:0.86rem; min-width:210px;">Add Seed Peer Endpoint:</label>
+            <input type="text" class="input-text" id="set-seed-ep" placeholder="192.168.1.102:5002" style="width:220px" />
+            <button class="btn btn-secondary" id="btn-settings-add-seed">Add &amp; Probe Seed</button>
+          </div>
+          <p style="font-size:0.79rem; color:var(--text-muted); margin-top:0.85rem;">
+            Note: Core identity settings (Peer ID, TCP listen port, UDP discovery port, and storage directory) are locked while the peer daemon is online to prevent mid-transfer corruption.
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Locally Stored Shards on This Peer (<span id="set-local-shard-count">0</span> .chunk files)</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Shard Filename</th>
+                  <th>Shard ID</th>
+                  <th>Size on Disk</th>
+                </tr>
+              </thead>
+              <tbody id="local-shards-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- SECTION E: FILE DETAILS MODAL -->
+  <div class="modal-backdrop" id="file-details-modal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3 id="md-title">E. File Manifest &amp; Shard Distribution Details</h3>
+          <p id="md-subtitle" style="font-size:0.8rem; color:var(--text-secondary);"></p>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" id="md-btn-download">DOWNLOAD FILE</button>
+          <button class="btn btn-secondary btn-sm" id="md-btn-close">&#x2715; Close</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="kv-grid" id="md-kv-grid"></div>
+        <h4 style="margin-bottom:0.6rem; font-size:0.92rem;">Stripe &amp; Shard Placement Map (RS(3,2): D0, D1 Data + P0 Parity)</h4>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Stripe</th>
+                <th>Shard ID</th>
+                <th>Type</th>
+                <th>Original Bytes</th>
+                <th>Padded Size</th>
+                <th>Storage Peer(s) &amp; Status</th>
+                <th>Shard SHA-256</th>
+              </tr>
+            </thead>
+            <tbody id="md-shards-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+  <script src="/app.js"></script>
+</body>
+</html>

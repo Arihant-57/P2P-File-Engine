@@ -1,0 +1,70 @@
+# ==============================================================================
+# Git Ignore Configuration - P2P Decentralized File Transfer & Recovery Engine
+# ==============================================================================
+
+# Build artifacts & CMake directories
+build/
+bin/
+out/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.vcxproj*
+*.sln
+*.dir/
+
+# Compiled object & binary files
+*.obj
+*.o
+*.lib
+*.a
+*.pdb
+*.ilk
+*.exp
+*.idb
+*.tlog
+
+# Runtime executable binaries & libraries (distributed via GitHub Releases)
+*.exe
+*.dll
+
+# SQLite runtime databases & WAL journals
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Local peer storage & chunk stores
+storage/
+output/
+staging/
+input/
+metadata/
+run/
+*.chunk
+*.tmp
+*.pid
+
+# Temporary files & logs
+*.log
+*.tmp
+*.bak
+test_data/
+package_staging/
+e2e_audit_workspace/
+
+# Visual Studio / VS Code local configuration
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Operating System specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Release output directory (packaged archives distributed via GitHub Releases)
+dist/

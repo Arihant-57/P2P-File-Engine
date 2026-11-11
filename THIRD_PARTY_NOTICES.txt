@@ -1,0 +1,29 @@
+================================================================================
+  THIRD-PARTY SOFTWARE NOTICES AND LICENSES
+  Peer-to-Peer Decentralized File Transfer and Recovery Engine
+================================================================================
+
+This software distribution incorporates the following third-party components:
+
+1. SQLite 3 (Embedded Relational Database Engine)
+   - Location: third_party/sqlite/ (sqlite3.c, sqlite3.h)
+   - License: Public Domain
+   - Notice: The author(s) of SQLite have dedicated the code to the public
+     domain. Anyone is free to copy, modify, publish, use, compile, sell, or
+     distribute the original SQLite code, either in source code form or as a
+     compiled binary, for any purpose, commercial or non-commercial, and by
+     any means. (https://www.sqlite.org/copyright.html)
+
+2. OpenSSL 3.x (Cryptographic Library - SHA-256 Digest Engine)
+   - Location: third_party/openssl/ (libcrypto-3-x64.dll, headers & import lib)
+   - License: Apache License 2.0
+   - Notice: This product includes software developed by the OpenSSL Project
+     for use in the OpenSSL Toolkit (https://www.openssl.org/).
+     Licensed under the Apache License, Version 2.0 (the "License"); you may
+     not use this file except in compliance with the License. You may obtain a
+     copy of the License at https://www.apache.org/licenses/LICENSE-2.0.
+
+3. mini_json.hpp (Single-Header C++17 JSON Parser/Serializer)
+   - Location: third_party/mini_json.hpp
+   - License: Project-internal lightweight header-only utility.
+================================================================================
